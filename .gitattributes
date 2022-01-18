@@ -1,2 +1,71 @@
-# Auto detect text files and perform LF normalization
+# see: https://help.github.com/en/github/using-git/configuring-git-to-handle-line-endings
+# see: https://git-scm.com/docs/gitattributes
+# Format: pattern attr1 attr2 ...
+# "When more than one pattern matches the path, a later line overrides an
+# earlier line. This overriding is done per attribute."
+
+# Set default behavior to automatically normalize line endings for any file
+# that git determines to be text, unless overridden below. These will be
+# committed with LF, and checked out with either LF or CRLF depending on what
+# `core.eol` is set to (default is 'native'). This overrides core.autocrlf.
 * text=auto
+
+# Explicitly set these files as text. Without this, git will not auto convert
+# files already committed with mixed line endings.  From the gitattributes man
+# page: "When the file has been committed with CRLF, no conversion is done."
+# By explicitly setting 'text', we will future-proof these specific filetypes.
+#
+# WARNING: if any of file with one of these extensions is committed with UTF-16
+# encoding, git will incorrectly normalize the line endings leading to a
+# corrupt file. UTF-16 is unsupported by git and should be treated as binary,
+# never as text. To avoid corruption by this subtle process, I suggest that
+# keep these lines commented until git fully supports UTF-16. They will still
+# be useful for when mixed line endings sneak back into the repo. In that case,
+# uncomment these lines temporarily, run `git add --renormalize trunk/`, then
+# comment these lines again.
+## *.asax    text
+## *.cs      text
+## *.cshtml  text
+## *.css     text
+## *.html    text
+## *.js      text
+## *.json    text
+## *.scss    text
+## *.sql     text
+## *.ts      text
+
+# Set default diff drivers. This enables a language-specific diff experience,
+# which is just a tad nicer.
+*.cs     diff=csharp
+
+# Declare files that will always have CRLF line endings on checkout, regardless
+# of core.eol setting. This overrides the `* text=auto` setting above.
+*.sln       text eol=crlf
+*.csproj    text eol=crlf
+*.sqlproj   text eol=crlf
+*.dbproj    text eol=crlf
+*.sql       text eol=crlf
+
+# Set the merge driver for project and solution files. [disabled until needed]
+# If we start having issues with git's automerge doing the wrong things for
+# .sln or .csproj files, then uncomment these lines to treat these these files
+# as binary and cause changes to always conflict and require user intervention
+# during merge.
+#*.sln       merge=binary
+#*.csproj    merge=binary
+#*.dbproj    merge=binary
+#*.sqlproj   merge=binary
+
+# Explicity set some files as binary, to prevent an incorrect guess by git.
+# This overrides the `* text=auto` setting above.
+*.jpeg  binary
+*.jpg   binary
+*.JPG   binary
+*.png   binary
+*.PNG   binary
+*.gif   binary
+*.GIF   binary
+*.ico   binary
+*.pfx   binary
+*.mdf   binary
+*.msi   binary

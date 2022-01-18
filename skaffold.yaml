@@ -1,0 +1,59 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+build:
+  artifacts:
+    - image: aspnet-sample
+      context: .
+      buildpacks:
+        builder: paketobuildpacks/builder:base
+        buildpacks:
+          - gcr.io/paketo-buildpacks/dotnet-core
+        env:
+          - "BP_DOTNET_PUBLISH_FLAGS=--configuration Debug"
+          - "BPL_DEBUG_ENABLE=true"
+  tagPolicy:
+    envTemplate:
+      template: local
+deploy:
+  helm:
+    releases:
+      - name: aspnet-sample-release
+        remoteChart: aspnet-core
+        wait: true
+        artifactOverrides:
+          image: aspnet-sample
+        setValueTemplates:
+          ingress.hostname: localhost
+        overrides:
+          nameOverride: web
+          commonLabels:
+            app.kubernetes.io/instance: aspnet-sample-release
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: aspnet-sample
+          appFromExternalRepo:
+            enabled: false
+          command:
+            - "web"
+          bindURLs: "https://+;http://+"
+          image:
+            debug: true
+          ingress:
+            enabled: true
+            apiVersion: networking.k8s.io/v1
+            ingressClassName: nginx
+            annotations:
+              nginx.ingress.kubernetes.io/client-body-buffer-size: "100M"
+              nginx.ingress.kubernetes.io/proxy-body-size: "100M"
+            pathType: Prefix
+            path: /
+            tls: false
+        createNamespace: false
+        repo: https://charts.bitnami.com/bitnami
+        upgradeOnChange: true
+        imageStrategy:
+          helm: {}
+portForward:
+  - resourceType: Service
+    resourceName: aspnet-sample-release-web
+    port: 80
+    localPort: 5000
